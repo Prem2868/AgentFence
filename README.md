@@ -6,21 +6,62 @@
 
 Prompt-injection detectors inspect suspicious inputs. AgentFence focuses on a separate question: given a proposed tool and action, does a local policy allow it, deny it, or require a human approval step? That makes it useful for policy unit tests, trace review, and CI checks without depending on an LLM.
 
-## Quick start
+## Usage
 
-Requires Python 3.10+; runtime uses only the standard library.
+Requires Python 3.10+. Runtime dependencies are standard-library only; install pytest only if you want to run the tests.
+
+### 1. Install and enter the repository
 
 ```bash
-python cli.py --policy examples/policy.json --events examples/events.jsonl
+git clone https://github.com/Prem2868/AgentFence.git
+cd AgentFence
+python -m pip install -e .
 ```
 
-Input is JSON Lines, one object per proposed tool call:
+For development and tests, use `python -m pip install -e '.[test]'` instead.
+
+### 2. Define the policy
+
+Create `policy.json`. Start with `default_effect: "deny"`, then explicitly allow only the tool/action pairs the agent needs. This example allows read-only search, requires a human checkpoint for file writes, and denies shell execution:
 
 ```json
-{"event_id":"evt-1","tool":"search_docs","action":"query","arguments":{"query":"local docs"}}
+{
+  "version": 1,
+  "default_effect": "deny",
+  "rules": [
+    {"tool": "search_docs", "action": "query", "effect": "allow", "reason": "Read-only documentation search"},
+    {"tool": "workspace", "action": "write_file", "effect": "require_approval", "reason": "Review file changes first"},
+    {"tool": "shell", "action": "*", "effect": "deny", "reason": "Shell is not permitted"}
+  ]
+}
 ```
 
-Each output line is a JSON decision with event ID, tool/action, reason, optional timestamp, and a SHA-256 digest of canonicalized arguments. **Argument values are not copied to output.** The digest may still reveal equality between repeated argument sets; do not treat it as anonymization for low-entropy or sensitive values.
+### 3. Prepare a JSONL event trace
+
+Save one proposed tool call per line in `events.jsonl`. Use synthetic data when learning the format:
+
+```jsonl
+{"event_id":"evt-001","tool":"search_docs","action":"query","arguments":{"query":"local security docs"}}
+{"event_id":"evt-002","tool":"workspace","action":"write_file","arguments":{"path":"notes.txt","content":"example"}}
+{"event_id":"evt-003","tool":"shell","action":"run","arguments":{"command":"whoami"}}
+{"event_id":"evt-004","tool":"unknown_tool","action":"execute","arguments":{}}
+```
+
+### 4. Evaluate the trace
+
+```bash
+agentfence --policy policy.json --events events.jsonl
+```
+
+AgentFence prints one JSON result per input event. The example produces decisions `allow`, `require_approval`, `deny`, and `deny`, respectively. For example:
+
+```json
+{"action":"query","arguments_sha256":"…","decision":"allow","event_id":"evt-001","reason":"Read-only documentation search","tool":"search_docs"}
+```
+
+Each result contains the event ID, tool/action, decision, reason, optional timestamp, and a SHA-256 digest of canonicalized arguments. **Argument values are not copied to output.** The digest can still reveal equality between repeated argument sets; it is not anonymization for low-entropy or sensitive values. Avoid storing raw production traces unless your privacy and retention controls allow it.
+
+You can also run the CLI from a checkout without installing it: `python cli.py --policy policy.json --events events.jsonl`. Use `--events -` to read JSONL from standard input.
 
 ## Policy format
 
