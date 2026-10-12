@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "default_effect": "deny",
+  "rules": [
+    {
+      "tool": "search_docs",
+      "action": "query",
+      "effect": "allow",
+      "reason": "Read-only documentation search"
+    },
+    {
+      "tool": "workspace",
+      "action": "write_file",
+      "effect": "require_approval",
+      "reason": "File modification requires human approval"
+    },
+    {
+      "tool": "shell",
+      "action": "*",
+      "effect": "deny",
+      "reason": "Shell execution is not allowed by this example policy"
+    }
+  ]
+}

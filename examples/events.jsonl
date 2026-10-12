@@ -1,0 +1,3 @@
+{"event_id":"evt-001","timestamp":"2026-10-13T03:00:00Z","tool":"search_docs","action":"query","arguments":{"query":"security policy"}}
+{"event_id":"evt-002","timestamp":"2026-10-13T03:00:01Z","tool":"workspace","action":"write_file","arguments":{"path":"notes.txt","content":"sample"}}
+{"event_id":"evt-003","timestamp":"2026-10-13T03:00:02Z","tool":"unknown_tool","action":"execute","arguments":{}}
