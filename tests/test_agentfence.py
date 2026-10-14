@@ -62,3 +62,21 @@ def test_cli_fail_on_deny_exits_nonzero(tmp_path):
     proc = subprocess.run([sys.executable, str(ROOT / "cli.py"), "--policy", str(policy), "--events", str(events), "--fail-on", "deny"], capture_output=True, text=True)
     assert proc.returncode == 1
     assert [json.loads(line)["decision"] for line in proc.stdout.splitlines()] == ["allow", "deny"]
+
+
+@pytest.mark.parametrize(
+    ("effect", "fail_on", "expected_returncode"),
+    [("require_approval", "require_approval", 1), ("deny", "never", 0)],
+)
+def test_cli_fail_on_modes(tmp_path, effect, fail_on, expected_returncode):
+    policy = tmp_path / "policy.json"
+    events = tmp_path / "events.jsonl"
+    policy.write_text(json.dumps({"version": 1, "rules": [
+        {"tool": "workspace", "action": "write_file", "effect": effect}
+    ]}))
+    events.write_text('{"tool":"workspace","action":"write_file"}\n')
+    proc = subprocess.run(
+        [sys.executable, str(ROOT / "cli.py"), "--policy", str(policy), "--events", str(events), "--fail-on", fail_on],
+        capture_output=True, text=True,
+    )
+    assert proc.returncode == expected_returncode
