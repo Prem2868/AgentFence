@@ -17,6 +17,16 @@ def test_default_is_deny_and_secrets_are_not_emitted():
     assert len(result["arguments_sha256"]) == 64
 
 
+def test_argument_digest_is_canonical_and_content_sensitive():
+    policy = {"version": 1}
+    first = evaluate(policy, {"tool": "search", "arguments": {"query": "alpha", "scope": "docs"}})
+    reordered = evaluate(policy, {"tool": "search", "arguments": {"scope": "docs", "query": "alpha"}})
+    changed = evaluate(policy, {"tool": "search", "arguments": {"scope": "docs", "query": "beta"}})
+
+    assert first["arguments_sha256"] == reordered["arguments_sha256"]
+    assert first["arguments_sha256"] != changed["arguments_sha256"]
+
+
 def test_allow_rule_matches_exact_tool_and_action():
     policy = {"version": 1, "rules": [{"tool": "search", "action": "query", "effect": "allow"}]}
     assert evaluate(policy, {"tool": "search", "action": "query"})["decision"] == "allow"
