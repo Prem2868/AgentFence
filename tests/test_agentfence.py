@@ -56,6 +56,12 @@ def test_timestamp_and_event_id_are_preserved():
     assert result["timestamp"].startswith("2026-")
 
 
+@pytest.mark.parametrize("event_id", [True, False])
+def test_boolean_event_id_is_rejected(event_id):
+    with pytest.raises(PolicyError, match="event_id must be a string or integer"):
+        evaluate({"version": 1}, {"event_id": event_id, "tool": "a"})
+
+
 @pytest.mark.parametrize("policy", [None, {}, {"version": 2}, {"version": 1, "default_effect": "maybe"},
                                     {"version": 1, "rules": "not-a-list"},
                                     {"version": 1, "rules": [{"tool": "a", "effect": "maybe"}]}])

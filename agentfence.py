@@ -77,7 +77,7 @@ def evaluate(policy: dict[str, Any], event: dict[str, Any]) -> dict[str, Any]:
         reason = "No matching policy rule"
 
     event_id = event.get("event_id")
-    if event_id is not None and not isinstance(event_id, (str, int)):
+    if event_id is not None and not (isinstance(event_id, str) or type(event_id) is int):
         raise PolicyError("event_id must be a string or integer")
     result = {
         "event_id": event_id,
