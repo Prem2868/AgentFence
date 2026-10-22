@@ -42,7 +42,13 @@ def _validate_policy(policy: dict[str, Any]) -> list[dict[str, str]]:
 def _argument_digest(arguments: Any) -> str:
     """Hash canonical arguments; never include argument values in audit output."""
     try:
-        canonical = json.dumps(arguments, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+        canonical = json.dumps(
+            arguments,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+            allow_nan=False,
+        )
     except (TypeError, ValueError) as exc:
         raise PolicyError("arguments must be JSON-serializable") from exc
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()

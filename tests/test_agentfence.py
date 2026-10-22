@@ -27,6 +27,12 @@ def test_argument_digest_is_canonical_and_content_sensitive():
     assert first["arguments_sha256"] != changed["arguments_sha256"]
 
 
+@pytest.mark.parametrize("value", [float("nan"), float("inf"), float("-inf")])
+def test_non_finite_argument_numbers_are_rejected(value):
+    with pytest.raises(PolicyError, match="arguments must be JSON-serializable"):
+        evaluate({"version": 1}, {"tool": "calculate", "arguments": {"value": value}})
+
+
 def test_allow_rule_matches_exact_tool_and_action():
     policy = {"version": 1, "rules": [{"tool": "search", "action": "query", "effect": "allow"}]}
     assert evaluate(policy, {"tool": "search", "action": "query"})["decision"] == "allow"
