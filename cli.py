@@ -9,6 +9,15 @@ from pathlib import Path
 from agentfence import PolicyError, evaluate
 
 
+def _unique_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    result: dict[str, object] = {}
+    for key, value in pairs:
+        if key in result:
+            raise PolicyError(f"duplicate JSON object key: {key!r}")
+        result[key] = value
+    return result
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Evaluate agent tool-call traces against a local JSON policy.")
     parser.add_argument("--policy", required=True, help="Policy JSON file")
@@ -18,7 +27,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     try:
-        policy = json.loads(Path(args.policy).read_text(encoding="utf-8"))
+        policy = json.loads(Path(args.policy).read_text(encoding="utf-8"), object_pairs_hook=_unique_object)
         source = sys.stdin if args.events == "-" else Path(args.events).open(encoding="utf-8")
         matched_fail_on = False
         with source:
@@ -26,7 +35,7 @@ def main(argv: list[str] | None = None) -> int:
                 if not line.strip():
                     continue
                 try:
-                    event = json.loads(line)
+                    event = json.loads(line, object_pairs_hook=_unique_object)
                     result = evaluate(policy, event)
                     print(json.dumps(result, ensure_ascii=False, sort_keys=True))
                     if result["decision"] == args.fail_on:

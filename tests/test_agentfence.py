@@ -102,3 +102,23 @@ def test_cli_fail_on_modes(tmp_path, effect, fail_on, expected_returncode):
         capture_output=True, text=True,
     )
     assert proc.returncode == expected_returncode
+
+
+@pytest.mark.parametrize(
+    ("policy_text", "event_text", "expected_error"),
+    [
+        ('{"version":1,"version":1}', '{"tool":"search"}', "duplicate JSON object key: 'version'"),
+        ('{"version":1}', '{"tool":"search","tool":"shell"}', "duplicate JSON object key: 'tool'"),
+    ],
+)
+def test_cli_rejects_duplicate_json_keys(tmp_path, policy_text, event_text, expected_error):
+    policy = tmp_path / "policy.json"
+    events = tmp_path / "events.jsonl"
+    policy.write_text(policy_text)
+    events.write_text(event_text + "\n")
+    proc = subprocess.run(
+        [sys.executable, str(ROOT / "cli.py"), "--policy", str(policy), "--events", str(events)],
+        capture_output=True, text=True,
+    )
+    assert proc.returncode == 2
+    assert expected_error in proc.stderr
