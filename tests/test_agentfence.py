@@ -109,6 +109,7 @@ def test_cli_fail_on_modes(tmp_path, effect, fail_on, expected_returncode):
     [
         ('{"version":1,"version":1}', '{"tool":"search"}', "duplicate JSON object key: 'version'"),
         ('{"version":1}', '{"tool":"search","tool":"shell"}', "duplicate JSON object key: 'tool'"),
+        ('{"version":1}', '{"tool":"search","arguments":{"query":"a","query":"b"}}', "duplicate JSON object key: 'query'"),
     ],
 )
 def test_cli_rejects_duplicate_json_keys(tmp_path, policy_text, event_text, expected_error):

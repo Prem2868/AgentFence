@@ -87,7 +87,7 @@ The CLI streams one JSON decision per input event. `--fail-on` controls the proc
 python cli.py --policy examples/policy.json --events examples/events.jsonl --fail-on require_approval
 ```
 
-Options are `deny` (default), `require_approval`, or `never`. Invalid policies or malformed events exit with status 2; a matching `--fail-on` decision exits 1.
+Options are `deny` (default), `require_approval`, or `never`. Invalid policies or malformed events exit with status 2; a matching `--fail-on` decision exits 1. The CLI rejects duplicate object keys in either the policy JSON or an event (including nested objects) instead of silently keeping the last value. Argument values must also be JSON-serializable; non-finite numbers such as `NaN` and `Infinity` are rejected.
 
 Run tests with:
 
