@@ -108,6 +108,7 @@ def test_cli_fail_on_modes(tmp_path, effect, fail_on, expected_returncode):
     ("policy_text", "event_text", "expected_error"),
     [
         ('{"version":1,"version":1}', '{"tool":"search"}', "duplicate JSON object key: 'version'"),
+        ('{"version":1,"rules":[{"tool":"search","effect":"allow","effect":"deny"}]}', '{"tool":"search"}', "duplicate JSON object key: 'effect'"),
         ('{"version":1}', '{"tool":"search","tool":"shell"}', "duplicate JSON object key: 'tool'"),
         ('{"version":1}', '{"tool":"search","arguments":{"query":"a","query":"b"}}', "duplicate JSON object key: 'query'"),
     ],
