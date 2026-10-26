@@ -124,3 +124,23 @@ def test_cli_rejects_duplicate_json_keys(tmp_path, policy_text, event_text, expe
     )
     assert proc.returncode == 2
     assert expected_error in proc.stderr
+
+
+@pytest.mark.parametrize("invalid_file", ["policy", "events"])
+def test_cli_invalid_utf8_returns_input_error(tmp_path, invalid_file):
+    policy = tmp_path / "policy.json"
+    events = tmp_path / "events.jsonl"
+    policy.write_text('{"version":1}')
+    events.write_text('{"tool":"search"}\n')
+    if invalid_file == "policy":
+        policy.write_bytes(b"\xff")
+    else:
+        events.write_bytes(b"\xff\n")
+
+    proc = subprocess.run(
+        [sys.executable, str(ROOT / "cli.py"), "--policy", str(policy), "--events", str(events)],
+        capture_output=True, text=True,
+    )
+    assert proc.returncode == 2
+    assert "agentfence:" in proc.stderr
+    assert "Traceback" not in proc.stderr

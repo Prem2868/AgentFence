@@ -43,7 +43,7 @@ def main(argv: list[str] | None = None) -> int:
                 except (json.JSONDecodeError, PolicyError) as exc:
                     print(f"agentfence: event line {line_number}: {exc}", file=sys.stderr)
                     return 2
-    except (OSError, json.JSONDecodeError, PolicyError) as exc:
+    except (OSError, UnicodeError, json.JSONDecodeError, PolicyError) as exc:
         print(f"agentfence: {exc}", file=sys.stderr)
         return 2
     except BrokenPipeError:
