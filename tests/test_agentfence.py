@@ -76,6 +76,20 @@ def test_invalid_policy_rejected(policy):
         evaluate(policy, {"tool": "a"})
 
 
+@pytest.mark.parametrize(
+    ("policy", "message"),
+    [
+        ({"version": 1, "default_effct": "allow"}, "unsupported policy field"),
+        ({"version": 1, "rules": [{"tool": "file", "effect": "allow", "path": "/safe"}]},
+         "rule 0 has unsupported field(s): 'path'"),
+    ],
+)
+def test_unsupported_policy_fields_are_rejected(policy, message):
+    with pytest.raises(PolicyError) as exc_info:
+        evaluate(policy, {"tool": "a"})
+    assert message in str(exc_info.value)
+
+
 def test_cli_fail_on_deny_exits_nonzero(tmp_path):
     policy = tmp_path / "policy.json"
     events = tmp_path / "events.jsonl"

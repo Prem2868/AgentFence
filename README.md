@@ -77,6 +77,8 @@ You can also run the CLI from a checkout without installing it: `python cli.py -
 }
 ```
 
+Version 1 accepts only the top-level fields `version`, `default_effect`, and `rules`. Each rule accepts `tool`, `action`, `effect`, and optional `reason`; unsupported fields are rejected with a validation error rather than silently ignored. This prevents a misspelled key or an unsupported constraint from appearing to affect a decision when it does not.
+
 Tool/action values may be exact strings or `"*"`. With multiple matching rules, `deny` overrides `require_approval`, which overrides `allow`. If no rule matches, `default_effect` applies; the default is `deny`. `require_approval` is only a decision result: AgentFence does not collect approval, execute a call, or turn approval into permission.
 
 ## CI usage

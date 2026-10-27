@@ -15,6 +15,10 @@ class PolicyError(ValueError):
 def _validate_policy(policy: dict[str, Any]) -> list[dict[str, str]]:
     if not isinstance(policy, dict):
         raise PolicyError("policy must be a JSON object")
+    unknown_policy_fields = set(policy) - {"version", "default_effect", "rules"}
+    if unknown_policy_fields:
+        fields = ", ".join(sorted(map(repr, unknown_policy_fields)))
+        raise PolicyError(f"unsupported policy field(s): {fields}")
     if type(policy.get("version")) is not int or policy["version"] != 1:
         raise PolicyError("policy version must be 1")
     default = policy.get("default_effect", "deny")
@@ -27,6 +31,10 @@ def _validate_policy(policy: dict[str, Any]) -> list[dict[str, str]]:
     for index, rule in enumerate(rules):
         if not isinstance(rule, dict):
             raise PolicyError(f"rule {index} must be an object")
+        unknown_rule_fields = set(rule) - {"tool", "action", "effect", "reason"}
+        if unknown_rule_fields:
+            fields = ", ".join(sorted(map(repr, unknown_rule_fields)))
+            raise PolicyError(f"rule {index} has unsupported field(s): {fields}")
         tool, action, effect = rule.get("tool"), rule.get("action", "*") , rule.get("effect")
         if not isinstance(tool, str) or not tool.strip() or not isinstance(action, str) or not action.strip():
             raise PolicyError(f"rule {index} needs non-empty string tool and action fields")
